@@ -60,8 +60,10 @@ function InputPopover({
   trigger: React.ReactNode
   triggerClassName?: string
   disabled?: boolean
-  children: React.ReactNode
+  children: React.ReactNode | ((close: () => void) => React.ReactNode)
 }) {
+  const [open, setOpen] = useState(false)
+
   if (disabled) {
     return (
       <button
@@ -77,7 +79,7 @@ function InputPopover({
   }
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
           className={cn(
@@ -90,7 +92,7 @@ function InputPopover({
         </button>
       </PopoverTrigger>
       <PopoverContent align="center" className="w-64 p-1">
-        <div className="space-y-1">{children}</div>
+        <div className="space-y-1">{typeof children === "function" ? children(() => setOpen(false)) : children}</div>
       </PopoverContent>
     </Popover>
   )
@@ -313,12 +315,15 @@ export const ChatInput = memo(function ChatInput({
             </>
           }
         >
-          {availableProviders.map((provider) => {
+          {(close) => availableProviders.map((provider) => {
             const Icon = PROVIDER_ICONS[provider.id]
             return (
               <PopoverMenuItem
                 key={provider.id}
-                onClick={() => setProvider(provider.id)}
+                onClick={() => {
+                  setProvider(provider.id)
+                  close()
+                }}
                 selected={selectedProvider === provider.id}
                 icon={<Icon className="h-4 w-4 text-muted-foreground" />}
                 label={provider.label}
@@ -335,12 +340,15 @@ export const ChatInput = memo(function ChatInput({
             </>
           }
         >
-          {providerConfig.models.map((model) => {
+          {(close) => providerConfig.models.map((model) => {
             const Icon = MODEL_ICON_BY_ID[model.id] ?? Sparkles
             return (
               <PopoverMenuItem
                 key={model.id}
-                onClick={() => setModel(selectedProvider, model.id)}
+                onClick={() => {
+                  setModel(selectedProvider, model.id)
+                  close()
+                }}
                 selected={providerPrefs.model === model.id}
                 icon={<Icon className="h-4 w-4 text-muted-foreground" />}
                 label={model.label}
@@ -357,10 +365,13 @@ export const ChatInput = memo(function ChatInput({
             </>
           }
         >
-          {reasoningOptions.map((effort) => (
+          {(close) => reasoningOptions.map((effort) => (
             <PopoverMenuItem
               key={effort.id}
-              onClick={() => setReasoningEffort(effort.id)}
+              onClick={() => {
+                setReasoningEffort(effort.id)
+                close()
+              }}
               selected={selectedReasoningEffort === effort.id}
               icon={<Gauge className="h-4 w-4 text-muted-foreground" />}
               label={effort.label}
@@ -379,18 +390,28 @@ export const ChatInput = memo(function ChatInput({
             }
             triggerClassName={codexFastMode ? "text-emerald-500 dark:text-emerald-400" : undefined}
           >
-            <PopoverMenuItem
-              onClick={() => setModelOptions("codex", { fastMode: false })}
-              selected={!codexFastMode}
-              icon={<Gauge className="h-4 w-4 text-muted-foreground" />}
-              label="Standard"
-            />
-            <PopoverMenuItem
-              onClick={() => setModelOptions("codex", { fastMode: true })}
-              selected={codexFastMode}
-              icon={<Zap className="h-4 w-4 text-muted-foreground" />}
-              label="Fast Mode"
-            />
+            {(close) => (
+              <>
+                <PopoverMenuItem
+                  onClick={() => {
+                    setModelOptions("codex", { fastMode: false })
+                    close()
+                  }}
+                  selected={!codexFastMode}
+                  icon={<Gauge className="h-4 w-4 text-muted-foreground" />}
+                  label="Standard"
+                />
+                <PopoverMenuItem
+                  onClick={() => {
+                    setModelOptions("codex", { fastMode: true })
+                    close()
+                  }}
+                  selected={codexFastMode}
+                  icon={<Zap className="h-4 w-4 text-muted-foreground" />}
+                  label="Fast Mode"
+                />
+              </>
+            )}
           </InputPopover>
         ) : null}
 
@@ -404,20 +425,30 @@ export const ChatInput = memo(function ChatInput({
             }
             triggerClassName={planMode ? "text-blue-400 dark:text-blue-300" : undefined}
           >
-            <PopoverMenuItem
-              onClick={() => setPlanMode(false)}
-              selected={!planMode}
-              icon={<LockOpen className="h-4 w-4 text-muted-foreground" />}
-              label="Full Access"
-              description="Execute immediately without plan approval"
-            />
-            <PopoverMenuItem
-              onClick={() => setPlanMode(true)}
-              selected={planMode}
-              icon={<ListTodo className="h-4 w-4 text-muted-foreground" />}
-              label="Plan Mode"
-              description="Review a plan before execution"
-            />
+            {(close) => (
+              <>
+                <PopoverMenuItem
+                  onClick={() => {
+                    setPlanMode(false)
+                    close()
+                  }}
+                  selected={!planMode}
+                  icon={<LockOpen className="h-4 w-4 text-muted-foreground" />}
+                  label="Full Access"
+                  description="Execution without approval"
+                />
+                <PopoverMenuItem
+                  onClick={() => {
+                    setPlanMode(true)
+                    close()
+                  }}
+                  selected={planMode}
+                  icon={<ListTodo className="h-4 w-4 text-muted-foreground" />}
+                  label="Plan Mode"
+                  description="Review a plan before execution"
+                />
+              </>
+            )}
           </InputPopover>
         ) : null}
       </div>
