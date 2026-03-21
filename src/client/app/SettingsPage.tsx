@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type KeyboardEvent, type ReactNode } from "react"
 import {
   BookText,
+  Command,
   Code,
   Info,
   Loader2,
@@ -40,16 +41,17 @@ const sidebarItems = [
     subtitle: "Manage appearance, editor behavior, and embedded terminal defaults.",
   },
   {
+    id: "keybindings",
+    label: "Keybindings",
+    icon: Command,
+    subtitle: "Edit global app shortcuts stored in ~/.kanna/keybindings.json.",
+  },
+  // always last
+  {
     id: "changelog",
     label: "Changelog",
     icon: BookText,
     subtitle: "Release notes pulled from the public GitHub releases feed.",
-  },
-  {
-    id: "keybindings",
-    label: "Keybindings",
-    icon: Settings2,
-    subtitle: "Edit global app shortcuts stored in ~/.kanna/keybindings.json.",
   },
 ] as const
 type SidebarItem = (typeof sidebarItems)[number]
